@@ -10,7 +10,8 @@ def load_data(file_path: Path):
     raw = loadmat(file_path)
     data = np.squeeze(raw['data'].T)
     time = np.squeeze(raw['time'].T)
-    return pd.Series(data, index=time)
+    df = pd.Series(data, index=time)
+    return df.dropna()
 
 
 if __name__ == '__main__':

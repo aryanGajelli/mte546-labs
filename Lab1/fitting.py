@@ -3,15 +3,24 @@ import numpy as np
 """
 Model used: y = a/x + b/x^2 + c, where y is voltage and x is distance in cm
 """
+
+
 def least_squares_weights(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     X = np.vstack([1/x, 1/x**2, np.ones_like(x)]).T
     return np.linalg.inv(X.T @ X) @ X.T @ y
 
+
 def predict(x: np.ndarray, weights: np.ndarray) -> np.ndarray:
     return (weights[0] / x) + (weights[1] / x**2) + weights[2]
 
+
 def r_squared(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return 1 - np.sum((y_true - y_pred)**2) / np.sum((y_true - np.mean(y_true))**2)
+
+
+def gaussian(x, std, mean):
+    return 1/(std * np.sqrt(2 * np.pi)) * np.exp(-1/2 * ((x - mean)/std)**2)
+    
 
 # Q = np.diag([predict(1/(math.dist([predict(x, w_ls), x], [v, x])), w_ls) for x, v in zip(dist, voltage)])
 

@@ -6,7 +6,7 @@ import pandas as pd
 from pathlib import Path
 import re
 import numpy as np
-from fitting import least_squares_weights, predict, r_squared
+from fitting import least_squares_weights, predict, r_squared, gaussian
 import math
 
 # For each timeseries of distance measurements, determine the mean output voltage over the
@@ -15,14 +15,22 @@ import math
 data_dir = Path('data')
 
 
-def get_dist_v_voltage(dist_id: Literal['short', 'medium', 'long']):
-    dist_v_voltage = []
+def get_iterable_dist_v_voltage(dist_id: Literal['short', 'medium', 'long'], filter: bool = True):
     for path in data_dir.glob(f'{dist_id}*.mat'):
         if dist_id == 'long' and not re.findall('long\d+', path.stem):
             continue
-        df = load_data(path).rolling(3).median()
-        mean_voltage = df.mean()
+
+        df = load_data(path)
+        if filter:
+            df = df.rolling(5).median()
         dist = int(re.findall('\d+', path.stem)[0])
+        yield dist, df
+
+
+def get_dist_v_voltage(dist_id: Literal['short', 'medium', 'long']):
+    dist_v_voltage = []
+    for dist, df in get_iterable_dist_v_voltage(dist_id):
+        mean_voltage = df.mean()
         dist_v_voltage.append([dist, mean_voltage])
     dist_v_voltage.sort(key=lambda x: x[0])
     return np.squeeze(np.array(dist_v_voltage).T)
@@ -50,8 +58,38 @@ def plot_fit(dist, volt):
     plt.text(np.mean(dist)*.7, 1.25, f'$y=\\frac{{{w_ls[0]:.4f}}}{{x}} + \\frac{{{w_ls[1]:.4f}}}{{x^2}} + {w_ls[2]:.4f}$', fontsize=12)
     plt.ylim(0, 3)
 
+# parts 1-5
+# plot_dist_v_voltage('short')
+# plot_dist_v_voltage('medium')
+# plot_dist_v_voltage('long')
+# plt.show()
 
-plot_dist_v_voltage('short')
-plot_dist_v_voltage('medium')
-plot_dist_v_voltage('long')
+# part 6
+
+
+def plot_hists(dist_id: Literal['short', 'medium', 'long']):
+
+    plt.subplots_adjust(hspace=0.35, wspace=0.15)
+    i = 1
+
+    for dist, df in get_iterable_dist_v_voltage(dist_id, filter=True):
+        plt.subplot(2, 2, i)
+        df.plot.hist(bins=50, weights = np.ones_like(df.index) / len(df.index)) # weights normalizes the histogram
+        l = np.linspace(df.min(), df.max(), 1000)
+        g = gaussian(l, df.std(), df.mean())
+        print(df.std(), df.mean(), g.max())
+        plt.plot(l, g, label='Gaussian Fit', color='orange')
+        if i > 2:
+            plt.xlabel('Voltage (V)')
+        if i % 2 == 1:
+            plt.ylabel('Frequency')
+
+        plt.title(f'{dist}cm')
+        i += 1
+        if i > 4:
+            break
+    plt.suptitle(f'{dist_id.capitalize()} Distance Histograms')
+
+
+plot_hists('medium')
 plt.show()
