@@ -11,7 +11,8 @@ def load_data(file_path: Path):
     data = np.squeeze(raw['data'].T)
     time = np.squeeze(raw['time'].T)
     df = pd.Series(data, index=time)
-    return df.dropna()
+    df.dropna(inplace=True)
+    return df
 
 
 if __name__ == '__main__':
