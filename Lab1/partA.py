@@ -1,7 +1,7 @@
 from typing import Literal
-from load import load_data
+from load import load_data, load_data_two_data_rows
 import matplotlib.pyplot as plt
-import addcopyfighandler
+# import addcopyfighandler
 import pandas as pd
 from pathlib import Path
 import re
@@ -15,23 +15,33 @@ from scipy.stats import norm
 data_dir = Path('data')
 
 
-def get_iterable_dist_v_voltage(dist_id: Literal['short', 'medium', 'long'], filter: bool = True):
+def get_iterable_dist_v_voltage(dist_id: Literal['short', 'medium', 'long', 'longMedium'], filter: bool = True):
     for path in data_dir.glob(f'{dist_id}*.mat'):
         if dist_id == 'long' and not re.findall('long\d+', path.stem):
             continue
+        
+        if dist_id == 'longMedium':
+            df = load_data_two_data_rows(path)
+            if filter:
+                df = df.rolling(5).median()
+                dist = int(re.findall('\d+', path.stem)[0])
+            yield dist, df.dropna()
+        else:
+            df = load_data(path)
+            if filter:
+                df = df.rolling(5).median()
+                dist = int(re.findall('\d+', path.stem)[0])
+            yield dist, df.dropna()
+       
 
-        df = load_data(path)
-        if filter:
-            df = df.rolling(5).median()
-        dist = int(re.findall('\d+', path.stem)[0])
-        yield dist, df.dropna()
-
-
-def get_dist_v_voltage(dist_id: Literal['short', 'medium', 'long']):
+def get_dist_v_voltage(dist_id: Literal['short', 'medium', 'long', 'longMedium']):
     dist_v_voltage = []
     for dist, df in get_iterable_dist_v_voltage(dist_id):
         mean_voltage = df.mean()
-        dist_v_voltage.append([dist, mean_voltage])
+        if dist_id == 'longMedium':
+            dist_v_voltage.append([dist, mean_voltage['long'], mean_voltage['medium']])
+        else:
+            dist_v_voltage.append([dist, mean_voltage])
     dist_v_voltage.sort(key=lambda x: x[0])
     return np.squeeze(np.array(dist_v_voltage).T)
 
@@ -121,31 +131,54 @@ def get_variances(dist_id: Literal['short', 'medium', 'long']):
 
 # part 10
 # medium range sensor used
-var = np.median(get_variances('medium')[1])
-dists = np.array([20, 35, 50, 65, 80])
-w_ls = get_w_ls('medium')
+# var = np.median(get_variances('medium')[1])
+# dists = np.array([20, 35, 50, 65, 80])
+# w_ls = get_w_ls('medium')
 
 def noise_model(d, var):
     return d + np.random.normal(0, np.sqrt(var))
-# noisy voltage
-t = np.linspace(0, 5, 100)
-noisy_v = [noise_model(predict(dists[0], w_ls), var) for _ in t]
-noixy_d = f_inv(noisy_v, *w_ls)
-# plot f_inv
-plt.figure(figsize=(8,8))
-plt.subplots_adjust(hspace=0.4, wspace=0.2)
-plt.subplot(2, 1, 1)
-plt.plot(t, noisy_v, label='Noisy Voltage')
-plt.xlabel('Time (s)')
-plt.ylabel('Voltage (V)')
-plt.grid()
-plt.title('Noisy Voltage Over Time')
+# # noisy voltage
+# t = np.linspace(0, 5, 100)
+# noisy_v = [noise_model(predict(dists[0], w_ls), var) for _ in t]
+# noixy_d = f_inv(noisy_v, *w_ls)
+# # plot f_inv
+# plt.figure(figsize=(8,8))
+# plt.subplots_adjust(hspace=0.4, wspace=0.2)
+# plt.subplot(2, 1, 1)
+# plt.plot(t, noisy_v, label='Noisy Voltage')
+# plt.xlabel('Time (s)')
+# plt.ylabel('Voltage (V)')
+# plt.grid()
+# plt.title('Noisy Voltage Over Time')
 
-plt.subplot(2, 1, 2)
-plt.plot(t, noixy_d, label='f_inv(Noisy Voltage)')
-plt.ylabel('Distance (cm)')
-plt.xlabel('Time (s)')
-plt.grid()
-plt.title('f_inv(Noisy Voltage) Over Time')
+# plt.subplot(2, 1, 2)
+# plt.plot(t, noixy_d, label='f_inv(Noisy Voltage)')
+# plt.ylabel('Distance (cm)')
+# plt.xlabel('Time (s)')
+# plt.grid()
+# plt.title('f_inv(Noisy Voltage) Over Time')
 
+# plt.show()
+
+def v_to_dist_medium(v: float):
+    return (16.3598 + np.sqrt(267.643 - 128.887*(v-0.3936)))/(2*(v-0.3936))
+
+def v_to_dist_long(v: float):
+    return (51.0453 + np.sqrt(51.0453**2 - 951.9*(v+0.09)))/(2*(v+0.09))
+
+def get_dist_from_model(dist_id: Literal['medium', 'long']):
+    _, voltage_long, voltage_medium = get_dist_v_voltage('longMedium')
+    dist_list = []
+    if dist_id == 'medium':
+        for voltage in voltage_medium:
+            print(voltage)
+            dist_list.append(v_to_dist_medium(voltage))
+    else:
+        for voltage in voltage_long:
+            print(voltage)
+            dist_list.append(v_to_dist_long(voltage))
+    return dist_list
+
+
+print(get_dist_from_model('long'))
 plt.show()

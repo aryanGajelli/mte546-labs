@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import addcopyfighandler
+# import addcopyfighandler
 
 
 def load_data(file_path: Path):
@@ -11,6 +11,17 @@ def load_data(file_path: Path):
     data = np.squeeze(raw['data'].T)
     time = np.squeeze(raw['time'].T)
     df = pd.Series(data, index=time)
+    df.dropna(inplace=True)
+    return df
+
+def load_data_two_data_rows(file_path: Path):
+    raw = loadmat(file_path)
+    # Data is stored in two columns, which correspond with long and medium sensor data respectively
+    # We need both columns in seperate columns in the dataframe
+    # Index is time
+    data = np.squeeze(raw['data'].T)
+    time = np.squeeze(raw['time'].T)
+    df = pd.DataFrame(data.T, index=time, columns=['long', 'medium'])
     df.dropna(inplace=True)
     return df
 
