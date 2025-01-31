@@ -18,9 +18,13 @@ def r_squared(y_true: np.ndarray, y_pred: np.ndarray) -> float:
     return 1 - np.sum((y_true - y_pred)**2) / np.sum((y_true - np.mean(y_true))**2)
 
 
-def gaussian(x, std, mean):
-    return 1/(std * np.sqrt(2 * np.pi)) * np.exp(-1/2 * ((x - mean)/std)**2)
-    
+def gaussian(x, var, mean):
+    return 1/(np.sqrt(2 * np.pi*var)) * np.exp(-1/2 * (x - mean)**2/var)
+
+
+def f_inv(v, a, b, c):
+    x = v-c
+    return (a+np.sqrt(a**2+4*b*x))/(2*x)
 
 # Q = np.diag([predict(1/(math.dist([predict(x, w_ls), x], [v, x])), w_ls) for x, v in zip(dist, voltage)])
 

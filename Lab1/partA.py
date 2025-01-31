@@ -6,7 +6,7 @@ import pandas as pd
 from pathlib import Path
 import re
 import numpy as np
-from fitting import least_squares_weights, predict, r_squared, gaussian
+from fitting import least_squares_weights, predict, r_squared, gaussian, f_inv
 from scipy.stats import norm
 
 # For each timeseries of distance measurements, determine the mean output voltage over the
@@ -35,6 +35,9 @@ def get_dist_v_voltage(dist_id: Literal['short', 'medium', 'long']):
     dist_v_voltage.sort(key=lambda x: x[0])
     return np.squeeze(np.array(dist_v_voltage).T)
 
+def get_w_ls(dist_id: Literal['short', 'medium', 'long']):
+    dist, volt = get_dist_v_voltage(dist_id)
+    return least_squares_weights(dist, volt)
 
 def plot_dist_v_voltage(dist_id: Literal['short', 'medium', 'long']):
     dist, voltage = get_dist_v_voltage(dist_id)
@@ -64,9 +67,7 @@ def plot_fit(dist, volt):
 # plot_dist_v_voltage('long')
 # plt.show()
 
-# part 6
-
-
+# part 6-9
 def plot_hists(dist_id: Literal['short', 'medium', 'long']):
     plt.figure(figsize=(8, 8 if dist_id == 'long' else 6))
     plt.subplots_adjust(hspace=0.4, wspace=0.2)
@@ -103,12 +104,48 @@ def plot_hists(dist_id: Literal['short', 'medium', 'long']):
             break
     plt.suptitle(f'{dist_id.capitalize()} Distance Histograms')
 
+def get_variances(dist_id: Literal['short', 'medium', 'long']): 
+    variances = []
+    for dist, df in get_iterable_dist_v_voltage(dist_id, filter=False):
+        variances.append([dist, df.var()])
+    variances.sort(key=lambda x: x[0])
+    return np.squeeze(np.array(variances).T)
 
-# for dist, df in get_iterable_dist_v_voltage('long', filter=True):
-#     print(f'{dist} {df.std()**2:g}')
+# print(np.median(get_variances('short')[1]))
+# print(np.median(get_variances('medium')[1]))
+# print(np.median(get_variances('long')[1]))
+# plot_hists('short')
+# plot_hists('medium')
+# plot_hists('long')
+# plt.show()
 
+# part 10
+# medium range sensor used
+var = np.median(get_variances('medium')[1])
+dists = np.array([20, 35, 50, 65, 80])
+w_ls = get_w_ls('medium')
 
-plot_hists('short')
-plot_hists('medium')
-plot_hists('long')
+def noise_model(d, var):
+    return d + np.random.normal(0, np.sqrt(var))
+# noisy voltage
+t = np.linspace(0, 5, 100)
+noisy_v = [noise_model(predict(dists[0], w_ls), var) for _ in t]
+noixy_d = f_inv(noisy_v, *w_ls)
+# plot f_inv
+plt.figure(figsize=(8,8))
+plt.subplots_adjust(hspace=0.4, wspace=0.2)
+plt.subplot(2, 1, 1)
+plt.plot(t, noisy_v, label='Noisy Voltage')
+plt.xlabel('Time (s)')
+plt.ylabel('Voltage (V)')
+plt.grid()
+plt.title('Noisy Voltage Over Time')
+
+plt.subplot(2, 1, 2)
+plt.plot(t, noixy_d, label='f_inv(Noisy Voltage)')
+plt.ylabel('Distance (cm)')
+plt.xlabel('Time (s)')
+plt.grid()
+plt.title('f_inv(Noisy Voltage) Over Time')
+
 plt.show()
