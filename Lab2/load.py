@@ -10,10 +10,6 @@ def load_data(file_path: Path):
     raw = loadmat(file_path)
     data = np.squeeze(raw['data'])
     time = np.squeeze(raw['time'].T)
-    df = pd.DataFrame(data, index=time, columns=['long_x', 'med_x', 'short_y', 'long_y', 'therm_01', 'therm_11', 'therm_00', 'therm_10'])
+    df = pd.DataFrame(data, index=time, columns=['long_x', 'med_x', 'short_y', 'long_y', 'therm_01', 'therm_11', 'therm_00', 'therm_10']).rolling(100).median()
     df.dropna(inplace=True)
     return df
-
-
-if __name__ == '__main__':
-    print(load_data(Path('data/0_0.mat')))

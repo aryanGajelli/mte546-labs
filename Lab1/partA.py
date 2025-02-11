@@ -31,25 +31,26 @@ def get_iterable_dist_v_voltage(dist_id: SensorType, filter: bool = True):
         yield dist, df.dropna()
 
 
-def get_dist_v_voltage(dist_id: SensorType):
+def get_dist_v_voltage(dist_id: SensorType, multiplier: float = 1, offset: float = 0):
     dist_v_voltage = []
     for dist, df in get_iterable_dist_v_voltage(dist_id):
-        mean_voltage = df.mean()
+        mean_voltage = df.mean()*multiplier+offset
         if dist_id == 'longMedium':
             dist_v_voltage.append([dist, mean_voltage['long'], mean_voltage['medium']+0.222])
         else:
             dist_v_voltage.append([dist, mean_voltage])
+    # dist_v_voltage.append([0.1, 0.001])
     dist_v_voltage.sort(key=lambda x: x[0])
     return np.squeeze(np.array(dist_v_voltage).T)
 
 
-def get_w_ls(dist_id: SensorType):
-    dist, volt = get_dist_v_voltage(dist_id)
+def get_w_ls(dist_id: SensorType, multiplier: float = 1, offset: float = 0):
+    dist, volt = get_dist_v_voltage(dist_id, multiplier, offset)
     return least_squares_weights(dist, volt)
 
 
-def plot_dist_v_voltage(dist_id: SensorType):
-    dist, voltage = get_dist_v_voltage(dist_id)
+def plot_dist_v_voltage(dist_id: SensorType,  multiplier: float = 1, offset: float = 0):
+    dist, voltage = get_dist_v_voltage(dist_id, multiplier, offset)
     plt.figure()
     plot_fit(dist, voltage)
     plt.scatter(dist, voltage, label='Data', color='orange')
@@ -71,11 +72,31 @@ def plot_fit(dist, volt):
     plt.ylim(0, 3)
 
 # parts 1-5
-# plot_dist_v_voltage('short')
-# plot_dist_v_voltage('medium')
-# plot_dist_v_voltage('long')
+# plot_dist_v_voltage('short', 1.1, 0.2)
+# plot_dist_v_voltage('medium', 1.6,-.55)
+# plot_dist_v_voltage('long', 1.3, 0.15)
 # plt.show()
 
+# plot f_inv
+
+
+def plot_inv(dist_id: SensorType, multiplier: float = 1):
+    voltages = np.linspace(0, 3, 1000)
+    w_ls = get_w_ls(dist_id, multiplier)
+    dist = f_inv(voltages, *w_ls)
+    plt.figure()
+    plt.plot(voltages, dist)
+    plt.grid()
+    # plt.legend()
+    plt.xlabel('Voltage (V)')
+    plt.ylabel('Distance (cm)')
+    plt.title(f'{dist_id.capitalize()} Voltage Inverse')
+
+
+# plot_inv('short', 1.1, 0.2)
+# plot_inv('medium', 1.1)
+# plot_inv('long', 1.05)
+# plt.show()
 # part 6-9
 
 
@@ -144,13 +165,14 @@ def noise_model(d, var):
 
 
 # noisy voltage
-t = np.linspace(0, 5, 100)
-for dist in dists:
-    noisy_v = [noise_model(predict(dists[0], w_ls), var) for _ in t]
-    noisy_d = f_inv(noisy_v, *w_ls)
-    print(dist, np.var(noisy_v), np.var(noisy_d))
+# t = np.linspace(0, 5, 100)
+# for dist in dists:
+#     noisy_v = [noise_model(predict(dists[0], w_ls), var) for _ in t]
+#     noisy_d = f_inv(noisy_v, *w_ls)
+#     print(dist, np.var(noisy_v), np.var(noisy_d))
 
-# plot f_inv
+
+# plot noisy f_inv
 # plt.figure(figsize=(8,8))
 # plt.subplots_adjust(hspace=0.4, wspace=0.2)
 # plt.subplot(2, 1, 1)
@@ -159,6 +181,7 @@ for dist in dists:
 # plt.ylabel('Voltage (V)')
 # plt.grid()
 # plt.title('Noisy Voltage Over Time')
+# plt.show()
 
 # plt.subplot(2, 1, 2)
 # plt.plot(t, noixy_d, label='f_inv(Noisy Voltage)')
@@ -182,16 +205,19 @@ for dist in dists:
 
 # #     return dist_list
 
-# # plot f_inv
-# dist, voltage_long, voltage_medium  = get_dist_v_voltage('longMedium')
-# plt.figure(figsize=(8,8))
+# plot f_inv
+# dist, voltage_long = get_dist_v_voltage('longTilted') 
+# plt.figure(figsize=(8, 8))
 # plt.subplots_adjust(hspace=0.4, wspace=0.2)
-# plt.scatter(voltage_medium, dist, label='Medium Voltage')
+# # plt.scatter(voltage_medium, dist, label='Medium Voltage')
+# plt.scatter(voltage_long, dist, label='Long Voltage', color='orange')
 # plt.ylabel('Distance (cm)')
 # plt.xlabel('Voltage (V)')
 # plt.grid()
-# plt.plot(voltage_medium, v_to_dist_medium(voltage_medium), label='f_inv(Medium Voltage)')
-# plt.title('Medium Voltage Over Distance')
+# # plt.plot(voltage_medium, f_inv(voltage_medium, *get_w_ls('medium')), label='f_inv(Medium Voltage)')
+# plt.plot(voltage_long, f_inv(voltage_long, *get_w_ls('longDiffRef')), label='f_inv(Long Voltage)')
+# plt.legend()
+# plt.title('Voltage Over Distance')
 # plt.show()
 
 # print(get_dist_v_voltage('longTilted'))
