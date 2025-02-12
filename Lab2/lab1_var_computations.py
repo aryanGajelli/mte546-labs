@@ -11,13 +11,6 @@ from lab1_rebuild import long_f_inv, medium_f_inv, short_f_inv, predict, get_w_l
 '''
     Purpose of this file: Get the distance variances for each sensor for the particular range of interest (20-30 cm)
     -> Need the variance to compute the likelihood function for increments along the x and y axes
-
-    Load all .mat files
-    For each sensor, get the voltages corresponding to a single distance measurement (only in the 20-30 cm range)
-        -> Make sure to take a rolling average of 5 (window size)
-    Apply the inverse function to the voltages to get the distances
-    Compute the variances for each sensor at each distance
-    Compute the mean variance for each sensor (with respect to distance)
 '''
 SHORT_VAR = 1.1323 * 10**-5
 MEDIUM_VAR = 6.2572 * 10**-5
@@ -57,6 +50,7 @@ print(f'Medium Sensor Distance Variance: {medium_distance_mean_var}')
 print(f'Short Sensor Distance Variance: {short_distance_mean_var}')
 
 '''
+On Raw Data
 Long Sensor Distance Variance: 0.01582977830644576
 Medium Sensor Distance Variance: 0.05334445427583431
 Short Sensor Distance Variance: 0.018948316707200246
