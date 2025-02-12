@@ -7,10 +7,7 @@ from pathlib import Path
 import re
 from typing import Literal
 
-
-
 SensorType = Literal['short', 'medium', 'long', 'longMedium', 'longTilted', 'longDiffRef']
-
 
 def get_iterable_dist_v_voltage(dist_id: SensorType, filter: bool = True):
     data_dir = Path('../Lab1/data')
@@ -33,12 +30,28 @@ def get_dist_v_voltage(dist_id: SensorType, multiplier: float = 1, offset: float
     dist_v_voltage.sort(key=lambda x: x[0])
     return np.squeeze(np.array(dist_v_voltage).T)
 
-
 def get_f_inv(dist_id: SensorType, multiplier: float = 1, offset: float = 0):
     dist, volt = get_dist_v_voltage(dist_id, multiplier, offset)
     w_ls = least_squares_weights(dist, volt)
     return lambda v: lab1_f_inv(v, *w_ls)
 
+"""
+Model used: y = a/x + b/x^2 + c, where y is voltage and x is distance in cm
+"""
+def model(x):
+    return np.vstack([1/x, 1/x**2, np.ones_like(x)])
+    # return np.vstack([x**2, x, np.ones_like(x)])
+
+def predict(x: np.ndarray, weights: np.ndarray) -> np.ndarray:
+    X = model(x)
+    return np.dot(weights, X)
+
+def get_w_ls(dist_id: SensorType, multiplier: float = 1, offset: float = 0):
+    dist, volt = get_dist_v_voltage(dist_id, multiplier, offset)
+    return least_squares_weights(dist, volt)
+
+def noise_model(d, var):
+    return d + np.random.normal(0, np.sqrt(var))
 
 def long_f_inv(v):
     f_inv = get_f_inv('long', 1.3, 0.15)
