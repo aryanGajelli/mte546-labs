@@ -43,7 +43,7 @@ GRID_OFFSET = 18
 LONG_DIST_VAR = 0.01906650369386843
 MED_DIST_VAR = 0.05974882286090547
 SHORT_DIST_VAR = 0.02054449469005698
-
+BAD_SENSOR_VAR = np.mean([LONG_DIST_VAR, MED_DIST_VAR, SHORT_DIST_VAR])
 
 '''
 Test Data Joint Likelihood Function Calculations
@@ -256,7 +256,7 @@ df_0_0, df_0_1, df_0_2, df_1_0, df_1_1, df_1_2, df_2_0, df_2_1, df_2_2, df_2_1p5
 # print("long x errors", long_x_error_20, long_x_error_24, long_x_error_28)
 # print("med x errors", med_x_error_20, med_x_error_24, med_x_error_28)
 
-def get_dist_gaussian(sensor: LAB2_SENSORS, mean_dist):
+def get_dist_gaussian(sensor: LAB2_SENSORS, mean_dist, bad_sensor: bool = False):
     distance_data_points = np.linspace(0, 12, resolution)
     mesh_x, mesh_y = np.meshgrid(distance_data_points, distance_data_points)
 
@@ -269,6 +269,10 @@ def get_dist_gaussian(sensor: LAB2_SENSORS, mean_dist):
             variance = MED_DIST_VAR
         case 'short_y':
             variance = SHORT_DIST_VAR
+
+    if bad_sensor:
+        variance = BAD_SENSOR_VAR
+
     if 'x' in sensor:
         g = gaussian(mesh_x + GRID_OFFSET, variance, mean_dist)
     elif 'y' in sensor:
@@ -283,8 +287,8 @@ def get_dist_gaussian(sensor: LAB2_SENSORS, mean_dist):
 
 
 if __name__ == '__main__':
-    df = load_data('data/0_0.mat')
-    mesh_x, mesh_y, g = get_dist_gaussian('long_x', df['long_dist_x'].mean())
+    df = load_data('data/0_1.mat')
+    mesh_x, mesh_y, g = get_dist_gaussian('long_x', 28, bad_sensor=True)
     fig = plt.figure(0)
     ax = fig.add_subplot(projection='3d')
     surf = ax.plot_surface(mesh_x, mesh_y, g, cmap='viridis', rcount=300, ccount=300)
@@ -299,7 +303,7 @@ if __name__ == '__main__':
     for dist in distance_data_points:
         likelihood_y_axes_sensor_short.append(get_likelihood_function(df_0_1['long_dist_y'].mean(), LONG_DIST_VAR, dist))
 
-    likelihood_x_axes_special_case = get_likelihood_function(distance_data_points, np.mean([LONG_DIST_VAR, MED_DIST_VAR, SHORT_DIST_VAR]), 28)
+    likelihood_x_axes_special_case = get_likelihood_function(distance_data_points, BAD_SENSOR_VAR, 28)
 
     likelihoods_x_plot = np.outer(likelihood_x_axes_special_case, np.ones(resolution))
     likelihoods_y_plot = np.outer(np.ones(resolution), likelihood_y_axes_sensor_short)
