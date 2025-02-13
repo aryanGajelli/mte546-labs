@@ -8,7 +8,7 @@ def model(x):
     # return np.vstack([x**2, x, np.ones_like(x)])
 
 
-def least_squares_weights(x: np.ndarray, y: np.ndarray) -> np.ndarray:
+def least_squares_weights(x: np.ndarray, y: np.ndarray, model=model) -> np.ndarray:
     X = model(x).T
     return np.linalg.inv(X.T @ X) @ X.T @ y
 
@@ -24,7 +24,6 @@ def r_squared(y_true: np.ndarray, y_pred: np.ndarray) -> float:
 
 def gaussian(x, var, mean):
     return 1/(np.sqrt(2 * np.pi*var)) * np.exp(-1/2 * (x - mean)**2/var)
-
 
 def f_inv_quad(v, a, b, c):
     return (-b-np.sqrt(b**2-4*a*(c-v)))/(2*a)

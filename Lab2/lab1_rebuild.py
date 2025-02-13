@@ -1,13 +1,15 @@
-import numpy as np
+from typing import Literal
+import re
+from pathlib import Path
 import sys
 sys.path.append('../')
+from Lab1.fitting import least_squares_weights, f_inv as lab1_f_inv, r_squared, gaussian
 from Lab1.load import load_data as lab1_load_data
-from Lab1.fitting import least_squares_weights, f_inv as lab1_f_inv
-from pathlib import Path
-import re
-from typing import Literal
+import numpy as np
+
 
 SensorType = Literal['short', 'medium', 'long', 'longMedium', 'longTilted', 'longDiffRef']
+
 
 def get_iterable_dist_v_voltage(dist_id: SensorType, filter: bool = True):
     data_dir = Path('../Lab1/data')
@@ -30,21 +32,12 @@ def get_dist_v_voltage(dist_id: SensorType, multiplier: float = 1, offset: float
     dist_v_voltage.sort(key=lambda x: x[0])
     return np.squeeze(np.array(dist_v_voltage).T)
 
+
 def get_f_inv(dist_id: SensorType, multiplier: float = 1, offset: float = 0):
     dist, volt = get_dist_v_voltage(dist_id, multiplier, offset)
     w_ls = least_squares_weights(dist, volt)
     return lambda v: lab1_f_inv(v, *w_ls)
 
-"""
-Model used: y = a/x + b/x^2 + c, where y is voltage and x is distance in cm
-"""
-def model(x):
-    return np.vstack([1/x, 1/x**2, np.ones_like(x)])
-    # return np.vstack([x**2, x, np.ones_like(x)])
-
-def predict(x: np.ndarray, weights: np.ndarray) -> np.ndarray:
-    X = model(x)
-    return np.dot(weights, X)
 
 def get_w_ls(dist_id: SensorType, multiplier: float = 1, offset: float = 0):
     dist, volt = get_dist_v_voltage(dist_id, multiplier, offset)
