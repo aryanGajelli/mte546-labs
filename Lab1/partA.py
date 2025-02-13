@@ -1,7 +1,7 @@
 from typing import Literal
 from load import load_data, load_data_two_data_rows
 import matplotlib.pyplot as plt
-import addcopyfighandler
+# import addcopyfighandler
 import pandas as pd
 from pathlib import Path
 import re
@@ -72,10 +72,10 @@ def plot_fit(dist, volt):
     plt.ylim(0, 3)
 
 # parts 1-5
-# plot_dist_v_voltage('short', 1.1, 0.2)
-# plot_dist_v_voltage('medium', 1.6,-.55)
-# plot_dist_v_voltage('long', 1.3, 0.15)
-# plt.show()
+plot_dist_v_voltage('short', 1.1, 0.18)
+# plot_dist_v_voltage('medium', 1.6, -.425)
+# plot_dist_v_voltage('long', 1.18, 0.4)
+plt.show()
 
 # plot f_inv
 

@@ -50,19 +50,23 @@ def get_w_ls(dist_id: SensorType, multiplier: float = 1, offset: float = 0):
     dist, volt = get_dist_v_voltage(dist_id, multiplier, offset)
     return least_squares_weights(dist, volt)
 
+def normal_distribution(x, var, mean):
+    return 1/(np.sqrt(2 * np.pi*var)) * np.exp(-1/2 * (x - mean)**2/var)
+
 def noise_model(d, var):
     return d + np.random.normal(0, np.sqrt(var))
 
+# 1.3, 0.15
 def long_f_inv(v):
-    f_inv = get_f_inv('long', 1.3, 0.15)
+    f_inv = get_f_inv('long', 1.18, 0.4)
     return f_inv(v)
 
-
+# 1.6, -.55
 def medium_f_inv(v):
-    f_inv = get_f_inv('medium', 1.6, -.55)
+    f_inv = get_f_inv('medium', 1.6, -.425)
     return f_inv(v)
 
 
 def short_f_inv(v):
-    f_inv = get_f_inv('short', 1.1, 0.2)
+    f_inv = get_f_inv('short', 1.1, 0.18)
     return f_inv(v)

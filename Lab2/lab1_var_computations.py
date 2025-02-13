@@ -17,22 +17,19 @@ MEDIUM_VAR = 6.2572 * 10**-5
 LONG_VAR = 6.5163 * 10**-5
 
 # Apply the inverse functions to get the distances but take random samples from a normal distribution with variance var
-
-sample_size = 11
 noisy_d_long_var = []
 noisy_d_medium_var = []
 noisy_d_short_var = []
 
-dist_range = np.array([20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30])
+dist_range = np.array([18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32])
 t = np.linspace(0, 5, 1000)
 
 # loop 10 times
-for i in range(sample_size):
+for i in range(dist_range.size):
     # get the weights
-    w_ls_long = get_w_ls('long', 1.3, 0.15)
-    w_ls_medium = get_w_ls('medium', 1.6, -0.55)
-    w_ls_short = get_w_ls('short', 1.1, 0.2)
-
+    w_ls_long = get_w_ls('long', 1.18, 0.4)
+    w_ls_medium = get_w_ls('medium', 1.6, -.425)
+    w_ls_short = get_w_ls('short', 1.1, 0.18)
     # get the noisy distance for the long sensor
     noisy_v_long = [noise_model(predict(dist_range[i], w_ls_long), LONG_VAR) for _ in t]
     noisy_d_long_var.append(np.var(long_f_inv(noisy_v_long)))
@@ -51,7 +48,7 @@ print(f'Short Sensor Distance Variance: {short_distance_mean_var}')
 
 '''
 On Raw Data
-Long Sensor Distance Variance: 0.01582977830644576
-Medium Sensor Distance Variance: 0.05334445427583431
-Short Sensor Distance Variance: 0.018948316707200246
+Long Sensor Distance Variance: 0.01906650369386843
+Medium Sensor Distance Variance: 0.05974882286090547
+Short Sensor Distance Variance: 0.02054449469005698
 '''
