@@ -115,73 +115,64 @@ def get_therm_gaussian(therm_sensor, temp):
     return xx, yy, g
 
 
+if __name__ == '__main__':
+    # training data at location 00
 
-# training data at location 00
-
-# gather the mean temps at location 00 for all 4 thermocouples
-loc = np.array([2, 6])
-df = load_data('data/0_1.mat')
-# temp00 = get_measured_temp_at_loc('00', loc)
-xx00, yy00, g00 = get_therm_gaussian('00', df['temp_00'].mean())
-# temp20 = get_measured_temp_at_loc('20', loc)
-xx20, yy20, g20 = get_therm_gaussian('20', df['temp_20'].mean())
-
-try:
-    # temp02 = get_measured_temp_at_loc('02', loc)
+    # gather the mean temps at location 00 for all 4 thermocouples
+    loc = np.array([2, 6])
+    df = load_data('data/0_1.mat')
+    # temp00 = get_measured_temp_at_loc('00', loc)
+    xx00, yy00, g00 = get_therm_gaussian('00', df['temp_00'].mean())
+    # temp20 = get_measured_temp_at_loc('20', loc)
+    xx20, yy20, g20 = get_therm_gaussian('20', df['temp_20'].mean())
     xx02, yy02, g02 = get_therm_gaussian('02', df['temp_02'].mean())
-except IndexError:
-    g02 = np.ones_like(g00)
-try:
-    # temp22 = get_measured_temp_at_loc('22', loc)
     xx22, yy22, g22 = get_therm_gaussian('22', df['temp_22'].mean())
-except IndexError:
-    g22 = np.ones_like(g00)
 
-# breakpoint()
-# get likelihoods for each thermocouple
+    # breakpoint()
+    # get likelihoods for each thermocouple
 
 
 
 
-# exit()
+    # exit()
 
-# combine the likelihoods
-g = g00*g02*g20*g22
-g = g/g.sum() # normalize
+    # combine the likelihoods
+    g = g00*g02*g20*g22
+    g = g/g.sum() # normalize
 
-# get max likelihood position
-heat_source_idx = np.unravel_index(np.argmax(g, axis=None), g.shape)
-heat_source = np.array([xx00[heat_source_idx], yy00[heat_source_idx]])
-e = np.linalg.norm(heat_source - loc)
-print(f'Predicted Heat Source Location: {heat_source}')
-print(f'Actual Heat Source Location: {loc}')
-print(f'Error: {e}')
+    # get max likelihood position
+    heat_source_idx = np.unravel_index(np.argmax(g, axis=None), g.shape)
+    heat_source = np.array([xx00[heat_source_idx], yy00[heat_source_idx]])
+    e = np.linalg.norm(heat_source - loc)
+    print(f'Predicted Heat Source Location: {heat_source}')
+    print(f'Actual Heat Source Location: {loc}')
+    print(f'Error: {e}')
 
-# exit()
+    # exit()
 
-fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
-surf = ax.plot_surface(xx00, yy00, g, cmap='viridis',rcount=300, ccount=300, label='Combined Likelihood')
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    surf = ax.plot_surface(xx00, yy00, g, cmap='viridis',rcount=300, ccount=300, label='Combined Likelihood')
 
-ax.view_init(90, -100, 0)
-fig.colorbar(surf, shrink=0.2, aspect=5)
+    ax.view_init(90, -100, 0)
+    fig.colorbar(surf, shrink=0.2, aspect=5)
 
-for therm in therm_locs:
-    ax.scatter(therm_locs[therm][0], therm_locs[therm][1], 0)
-    ax.text(therm_locs[therm][0], therm_locs[therm][1], 0, f'{therm}', fontsize=12)
+    for therm in therm_locs:
+        ax.scatter(therm_locs[therm][0], therm_locs[therm][1], 0)
+        ax.text(therm_locs[therm][0], therm_locs[therm][1], 0, f'{therm}', fontsize=12)
 
-ax.scatter(*loc, 0, color='black', label='Actual Heat Source')
-ax.scatter(*heat_source, g[heat_source_idx], color='red', label='Predicted Heat Source')
-# plt.plot(x, g, label='Gaussian')
-# plt.axvline(heat_source, color='red', label='Predicted Value')
-# plt.axvline(dist[heat_source_idx], color='green', label='Actual Value')
-plt.xlabel('Distance x (cm)')
-plt.ylabel('Distance y (cm)')
-plt.clabel('Probability')
-plt.title(f'Likelihood of Heat Source at location ({loc[0]}cm , {loc[1]}cm)')
-# plt.title(f'Likelihood for thermocouple 20 @temp=35C')
-plt.legend()
-plt.grid()
-plt.show()
+    ax.scatter(*loc, 0, color='black', label='Actual Heat Source')
+    ax.scatter(*heat_source, g[heat_source_idx], color='red', label='Predicted Heat Source')
+    # plt.plot(x, g, label='Gaussian')
+    # plt.axvline(heat_source, color='red', label='Predicted Value')
+    # plt.axvline(dist[heat_source_idx], color='green', label='Actual Value')
+    plt.xlabel('Distance x (cm)')
+    plt.ylabel('Distance y (cm)')
+    plt.clabel('Probability')
+    plt.title(f'Likelihood of Heat Source at location ({loc[0]}cm , {loc[1]}cm)')
+    # plt.title(f'Likelihood for thermocouple 20 @temp=35C')
+    plt.legend()
+    plt.grid()
+    plt.show()
 
 
