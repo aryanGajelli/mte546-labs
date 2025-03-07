@@ -36,7 +36,7 @@ def get_dist_v_voltage(dist_id: SensorType, multiplier: float = 1, offset: float
     for dist, df in get_iterable_dist_v_voltage(dist_id):
         mean_voltage = df.mean()*multiplier+offset
         if dist_id == 'longMedium':
-            dist_v_voltage.append([dist, mean_voltage['long'], mean_voltage['medium']+0.222])
+            dist_v_voltage.append([dist, mean_voltage['long'], mean_voltage['medium']])
         else:
             dist_v_voltage.append([dist, mean_voltage])
     # dist_v_voltage.append([0.1, 0.001])
