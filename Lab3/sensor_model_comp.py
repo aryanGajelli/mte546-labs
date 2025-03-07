@@ -66,8 +66,9 @@ def plot_dist_v_voltage(dist_id: SensorType,  multiplier: float = 1, offset: flo
     if dist_id == 'long':
         dist, _, v = get_dist_v_voltage('med_long', multiplier, offset)
         dist_add, v_add = get_dist_v_voltage(dist_id, multiplier, offset)
-        dist = np.concatenate((dist, dist_add))
-        v = np.concatenate((v, v_add))
+        # Only add last element
+        np.append(dist, dist_add[1])
+        np.append(v, v_add[1])
     elif dist_id == 'medium': 
         dist, v, _ = get_dist_v_voltage('med_long', multiplier, offset)
     plt.figure()
@@ -80,7 +81,7 @@ def plot_dist_v_voltage(dist_id: SensorType,  multiplier: float = 1, offset: flo
     # plt.title(f'{dist_id.capitalize()} Distance with Fit')
 
 if __name__ == '__main__':
-    plot_dist_v_voltage('medium')
+    plot_dist_v_voltage('long')
     plt.show()
 
     # time_scale = linspace(0, 5, 5000)
