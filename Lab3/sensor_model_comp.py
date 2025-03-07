@@ -66,9 +66,11 @@ def plot_dist_v_voltage(dist_id: SensorType,  multiplier: float = 1, offset: flo
     if dist_id == 'long':
         dist, _, v = get_dist_v_voltage('med_long', multiplier, offset)
         dist_add, v_add = get_dist_v_voltage(dist_id, multiplier, offset)
+
         # Only add last element
-        np.append(dist, dist_add[1])
-        np.append(v, v_add[1])
+        dist = np.append(dist, dist_add[-1])
+        v = np.append(v, v_add[-1])
+
     elif dist_id == 'medium': 
         dist, v, _ = get_dist_v_voltage('med_long', multiplier, offset)
     plt.figure()
