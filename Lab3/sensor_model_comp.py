@@ -12,19 +12,24 @@ from numpy import linspace
 
 SensorType = Literal['med_long', 'medium', 'long']
 
+
 def load_data_two_data_rows(file_path: Path):
     raw = loadmat(file_path)
-    data = np.squeeze(raw['data'].T)
-    df = pd.DataFrame(data.T, columns=['medium', 'long'])
+    data = np.squeeze(raw['data'])
+    time = np.arange(0, len(data)/1000, 0.001)  # data was sample at 1kHz
+    df = pd.DataFrame(data, index=time, columns=['medium', 'long'])
     df.dropna(inplace=True)
     return df
+
 
 def load_data(file_path: Path):
     raw = loadmat(file_path)
     data = np.squeeze(raw['data'].T)
-    df = pd.Series(data)
+    time = np.arange(0, len(data)/1000, 0.001)  # data was sample at 1kHz
+    df = pd.DataFrame(data, index=time)
     df.dropna(inplace=True)
     return df
+
 
 def get_iterable_dist_v_voltage(dist_id: SensorType, filter: bool = True):
     data_dir = Path('../Lab3/Lab1_redone')
@@ -39,6 +44,7 @@ def get_iterable_dist_v_voltage(dist_id: SensorType, filter: bool = True):
         dist = int(re.findall('\d+', path.stem)[0])
         yield dist, df.dropna()
 
+
 def get_dist_v_voltage(dist_id: SensorType, multiplier: float = 1, offset: float = 0):
     dist_v_voltage = []
     for dist, df in get_iterable_dist_v_voltage(dist_id):
@@ -50,6 +56,7 @@ def get_dist_v_voltage(dist_id: SensorType, multiplier: float = 1, offset: float
     # dist_v_voltage.append([0.1, 0.001])
     dist_v_voltage.sort(key=lambda x: x[0])
     return np.squeeze(np.array(dist_v_voltage).T)
+
 
 def plot_fit(dist, volt):
     w_ls = least_squares_weights(dist, volt)
@@ -71,7 +78,7 @@ def plot_dist_v_voltage(dist_id: SensorType,  multiplier: float = 1, offset: flo
         dist = np.append(dist, dist_add[-1])
         v = np.append(v, v_add[-1])
 
-    elif dist_id == 'medium': 
+    elif dist_id == 'medium':
         dist, v, _ = get_dist_v_voltage('med_long', multiplier, offset)
     plt.figure()
     plot_fit(dist, v)
@@ -82,16 +89,19 @@ def plot_dist_v_voltage(dist_id: SensorType,  multiplier: float = 1, offset: flo
     plt.ylabel('Voltage (V)')
     # plt.title(f'{dist_id.capitalize()} Distance with Fit')
 
-if __name__ == '__main__':
-    plot_dist_v_voltage('long')
-    plt.show()
 
-    # time_scale = linspace(0, 5, 5000)
-    # print(time_scale)
-    # df = load_data_two_data_rows(Path('../Lab3/Lab1_redone/med_long_20cm.mat'))
-    # plt.plot(time_scale, df['medium'].rolling(10).median())
-    # plt.xlabel('Time (s)')
-    # plt.ylabel('Voltage (V)')
-    # plt.legend(['Medium Sensor Voltage Raw'])
-    # plt.title('Medium Sensor Voltage vs Time For 20cm Distance')
+if __name__ == '__main__':
+    # plot_dist_v_voltage('long')
     # plt.show()
+
+    df = load_data_two_data_rows(Path('Lab3_data/stationary35.mat'))
+    # df = load_data(Path('Lab1_redone/long_90cm.mat'))
+    # plt.plot(time_scale, df['medium'], label='Medium Sensor')
+    # plt.plot(time_scale, df['long'], label='Long Sensor')
+    df.plot()
+    plt.grid()
+    plt.xlabel('Time (s)')
+    plt.ylabel('Voltage (V)')
+    plt.legend()
+    plt.title('Medium Sensor Voltage vs Time For 20cm Distance')
+    plt.show()
