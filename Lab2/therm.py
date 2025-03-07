@@ -103,7 +103,6 @@ def get_therm_gaussian(therm_sensor, temp):
     data, _, _, w_ls = get_data_and_weight(therm_sensor)
     predicted = predict_therm(data[0], w_ls)
     e = data[1] - predicted
-
     heat_source = predict_therm(temp, w_ls)
     x = np.linspace(0, 12, 1000)
     y = np.linspace(0, 12, 1000)
