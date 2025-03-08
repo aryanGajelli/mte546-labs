@@ -4,12 +4,14 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.io import loadmat
 import numpy as np
-from Lab1.fitting import least_squares_weights, predict as lab1_predict, r_squared as lab1_r_squared, f_inv as lab1_f_inv
+
 from typing import Literal
 import re
 from pathlib import Path
 import sys
 sys.path.append('../')
+
+from Lab1.fitting import least_squares_weights, predict as lab1_predict, r_squared as lab1_r_squared, f_inv as lab1_f_inv
 
 SensorType = Literal['med_long', 'medium', 'long']
 
