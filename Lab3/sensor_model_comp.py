@@ -1,15 +1,15 @@
+from sympy import Matrix, symbols
+from numpy import linspace
+import matplotlib.pyplot as plt
+import pandas as pd
+from scipy.io import loadmat
+import numpy as np
+from Lab1.fitting import least_squares_weights, predict as lab1_predict, r_squared as lab1_r_squared, f_inv as lab1_f_inv
 from typing import Literal
 import re
 from pathlib import Path
 import sys
 sys.path.append('../')
-from Lab1.fitting import least_squares_weights, predict as lab1_predict, r_squared as lab1_r_squared, f_inv as lab1_f_inv
-import numpy as np
-from scipy.io import loadmat
-import pandas as pd
-import matplotlib.pyplot as plt
-from numpy import linspace
-from sympy import Matrix, symbols
 
 SensorType = Literal['med_long', 'medium', 'long']
 
@@ -94,25 +94,35 @@ def plot_dist_v_voltage(dist_id: SensorType,  multiplier: float = 1, offset: flo
 def get_f_inv(dist_id: SensorType, multiplier: float = 1, offset: float = 0):
     if dist_id == 'long':
         dist, _, volt = get_dist_v_voltage('med_long', multiplier, offset)
-    else: 
+    else:
         dist, volt, _ = get_dist_v_voltage('med_long', multiplier, offset)
     w_ls = least_squares_weights(dist, volt)
     return lambda v: lab1_f_inv(v, *w_ls)
+
 
 def long_f_inv(v):
     f_inv = get_f_inv('long')
     return f_inv(v)
 
+
 def medium_f_inv(v):
     f_inv = get_f_inv('medium')
     return f_inv(v)
 
-def jacobian():
-    x = symbols('x')
-    x_dot = symbols('x_dot')
-    x_ddot = symbols('x_ddot')
-    h = Matrix([28.1695/x - 7.8077/x**2 + 0.0177, 110.1430/x - 962.0809/x**2 - 0.6234])
-    return h.jacobian([x, x_dot, x_ddot])
+
+def h(x_k):
+    return np.array([
+        [28.1695/x_k - 7.8077/x_k**2 + 0.0177],  # medium
+        [110.1430/x_k - 962.0809/x_k**2 - 0.6234]  # long
+    ])
+
+
+def h_jacob(x_k):
+    x, x_dot, x_ddot = x_k
+    return np.array([
+        [-28.1695/x**2 - 15.6154/x**3, 0, 0],
+        [-110.1430/x**2 - 1924.162/x**3, 0, 0]
+    ])
 
 
 if __name__ == '__main__':
@@ -136,4 +146,3 @@ if __name__ == '__main__':
     # plt.legend(['Medium Sensor Voltage Raw'])
     # plt.title('Medium Sensor Voltage vs Time For 20cm Distance')
     # plt.show()
-    print(jacobian())
