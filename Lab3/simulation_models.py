@@ -1,5 +1,7 @@
 from typing import Literal
 import numpy as np
+import pandas as pd
+from sensor_model_comp import h
 
 SIM_TYPE = Literal['linear', 'nonlinear', 'random']
 
@@ -14,7 +16,7 @@ def simulate(sim_type: SIM_TYPE, x0, xf, t: np.ndarray, noise: float = 0.1):
     Bk = np.random.uniform(0, x0/2, N)
     # basics
     w = np.random.normal(0, noise, len(t))
-    x_lin = (xf - x0)/len(t)*t + x0 + w
+    x_lin = (xf - x0)/t[-1]*t + x0 + w
 
     match sim_type:
         case 'linear':
@@ -28,6 +30,24 @@ def simulate(sim_type: SIM_TYPE, x0, xf, t: np.ndarray, noise: float = 0.1):
         case _:
             raise ValueError('Invalid sim_type')
     return x
+
+def convert_to_df(z, t):
+    df = pd.DataFrame(z, index=t, columns=['medium', 'long'])
+    df.dropna(inplace=True)
+    return df
+
+def sim_sensors_smooth(x0, xf, t: np.ndarray):
+    x = simulate('linear', x0, xf, t)
+    z = h([x, None, None]).T
+
+    return convert_to_df(z, t)
+
+
+
+
+if __name__ == "__main__":
+    t = np.arange(0, 5, 0.001)
+    print(sim_sensors_smooth(25, 60, t))
 
 
 

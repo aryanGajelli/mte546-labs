@@ -1,6 +1,7 @@
 from filterpy.kalman import ExtendedKalmanFilter
 from filterpy.common import Q_discrete_white_noise
 from sensor_model_comp import load_data_two_data_rows, h, h_jacob, long_f_inv, medium_f_inv
+from simulation_models import sim_sensors_smooth
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -11,7 +12,7 @@ medium_range_var = 0.001250880235935414
 ekf = ExtendedKalmanFilter(dim_x=3, dim_z=2)
 
 # initial state
-ekf.x = np.array([30., 0., 0.])
+ekf.x = np.array([25., 0., 0.])
 
 # process model
 ekf.F = np.array([[1, dt, 0.5*dt*dt],
@@ -22,7 +23,10 @@ ekf.Q = Q_discrete_white_noise(dim=3, dt=dt, var=1)
 ekf.R = np.diag([medium_range_var, long_range_var])*150
 
 
-df = load_data_two_data_rows('Lab3_data/random30_70.mat')
+df_exp = load_data_two_data_rows('Lab3_data/smooth25_60.mat')
+time = np.arange(0, len(df_exp)*dt, dt)
+
+df = sim_sensors_smooth(25, 60, time)
 
 xs, track = [], []
 for i, row in df.iterrows():
@@ -37,14 +41,16 @@ xs = np.asarray(xs)
 track = np.asarray(track)
 long_dist = long_f_inv(track[:, 1])
 medium_dist = medium_f_inv(track[:, 0])
-time = np.arange(0, len(xs)*dt, dt)
+
 
 plt.plot(time, xs, label=['Filter x', 'Filter x\'', 'Filter x\'\''])
-plt.plot(time, medium_dist, label='Measured Medium')
-plt.plot(time, long_dist, label='Measured Long')
+plt.plot(time, medium_dist, label='Simulated Medium')
+plt.plot(time, long_dist, label='Simulated Long')
+plt.plot(time, long_f_inv(df_exp['long']), label='Measured Long')
+plt.plot(time, medium_f_inv(df_exp['medium']), label='Measured Medium')
 plt.grid()
 plt.legend()
 plt.xlabel('Time (s)')
 plt.ylabel('Distance (cm)')
-plt.title('Random 30cm to 70cm Distance Tracking')
+plt.title('Smooth 25cm to 60cm Distance Tracking')
 plt.show()
