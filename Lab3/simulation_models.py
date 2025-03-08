@@ -6,6 +6,9 @@ from sensor_model_comp import h
 SIM_TYPE = Literal['linear', 'nonlinear', 'random']
 
 def simulate(sim_type: SIM_TYPE, x0, xf, t: np.ndarray, noise: float = 0.1):
+    """
+    Returns a generated path and simulated medium and long sensor data for a given sim_type
+    """
     # tune these
     # nonlinear
     A = 0.1 # (0, xf-x0)
@@ -29,25 +32,20 @@ def simulate(sim_type: SIM_TYPE, x0, xf, t: np.ndarray, noise: float = 0.1):
                 x += Ak[k]*np.sin(2*np.pi*k/len(t)*t) + Bk[k]*np.cos(2*np.pi*k/len(t)*t)
         case _:
             raise ValueError('Invalid sim_type')
-    return x
+        
+    z = h([x, None, None]).T
+    return x, convert_to_df(z, t)
 
 def convert_to_df(z, t):
     df = pd.DataFrame(z, index=t, columns=['medium', 'long'])
     df.dropna(inplace=True)
     return df
 
-def sim_sensors_smooth(x0, xf, t: np.ndarray):
-    x = simulate('linear', x0, xf, t)
-    z = h([x, None, None]).T
-
-    return convert_to_df(z, t)
-
-
 
 
 if __name__ == "__main__":
     t = np.arange(0, 5, 0.001)
-    print(sim_sensors_smooth(25, 60, t))
+    print(simulate('linear', 25, 60, t))
 
 
 
