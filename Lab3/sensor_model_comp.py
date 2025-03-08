@@ -124,6 +124,18 @@ def h_jacob(x_k):
         [-110.1430/x**2 - 1924.162/x**3, 0, 0]
     ])
 
+def get_variances(dist_id: Literal['short', 'medium', 'long']):
+    variances = []
+    if dist_id == 'long':
+        for dist, df in get_iterable_dist_v_voltage('med_long', filter=False):
+            variances.append([dist, df['long'].var()])
+        for dist, df in get_iterable_dist_v_voltage('long', filter=False):
+            variances.append([dist, df['long'].var()])
+    elif dist_id == 'medium':
+        for dist, df in get_iterable_dist_v_voltage('med_long', filter=False):
+            variances.append([dist, df['medium'].var()])
+    variances.sort(key=lambda x: x[0])
+    return np.squeeze(np.array(variances).T)
 
 if __name__ == '__main__':
     # plot_dist_v_voltage('medium')
@@ -146,3 +158,6 @@ if __name__ == '__main__':
     # plt.legend(['Medium Sensor Voltage Raw'])
     # plt.title('Medium Sensor Voltage vs Time For 20cm Distance')
     # plt.show()
+
+    print(np.median(get_variances('medium')[1]))
+    print(np.median(get_variances('long')[1]))
