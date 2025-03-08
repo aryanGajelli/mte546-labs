@@ -11,8 +11,7 @@ medium_range_var = 0.001250880235935414
 
 ekf = ExtendedKalmanFilter(dim_x=3, dim_z=2)
 
-# initial state
-ekf.x = np.array([25., 0., 0.])
+
 
 # process model
 ekf.F = np.array([[1, dt, 0.5*dt*dt],
@@ -24,10 +23,11 @@ ekf.R = np.diag([medium_range_var, long_range_var])*150
 
 
 # df_exp = load_data_two_data_rows('Lab3_data/smooth25_60.mat')
-time = np.arange(0, 5, dt)
+time = np.arange(0, 10, dt)
 
-x_true, df = simulate('nonlinear', 25, 60, time, noise=0.5)
-
+x_true, df = simulate('random', 25, 60, time, noise=0.5)
+# initial state
+ekf.x = np.array([x_true[0], 0., 0.])
 xs, track = [], []
 for i, row in df.iterrows():
     z = np.array([row['medium'], row['long']])

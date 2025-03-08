@@ -19,20 +19,22 @@ def simulate(sim_type: SIM_TYPE, x0, xf, t: np.ndarray, noise: float = 0.1):
     Bk = np.random.uniform(0, x0/2, N)
     # basics
     w = np.random.normal(0, noise, len(t))
-    x_lin = (xf - x0)/t[-1]*t + x0 + w
+
+    tf = t[-1]
+    x_lin = (xf - x0)/tf*t + x0
 
     match sim_type:
         case 'linear':
             x = x_lin
         case 'nonlinear':
-            x = x_lin + A*np.sin(2*np.pi*f/len(t)*t)
+            x = x_lin + A*np.sin(2*np.pi*f/tf*t)
         case 'random':
             x = x0
             for k in range(N):
-                x += Ak[k]*np.sin(2*np.pi*k/len(t)*t) + Bk[k]*np.cos(2*np.pi*k/len(t)*t)
+                x += Ak[k]*np.sin(2*np.pi*k/tf*t) + Bk[k]*np.cos(2*np.pi*k/tf*t)
         case _:
             raise ValueError('Invalid sim_type')
-        
+    x = x + w
     z = h([x, None, None]).T
     return x, convert_to_df(z, t)
 
