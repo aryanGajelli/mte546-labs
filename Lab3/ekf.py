@@ -10,9 +10,6 @@ long_range_var = 0.006125515651269291
 medium_range_var = 0.001250880235935414
 
 ekf = ExtendedKalmanFilter(dim_x=3, dim_z=2)
-
-
-
 # process model
 ekf.F = np.array([[1, dt, 0.5*dt*dt],
                   [0, 1, dt],
@@ -26,10 +23,11 @@ ekf.R = np.diag([medium_range_var, long_range_var])*50
 # df_exp = load_data_two_data_rows('Lab3_data/smooth25_60.mat')
 time = np.arange(0, 10, dt)
 
-x_true, df = simulate('random', 25, 60, time, noise=0.5)
+x_true, df = simulate('nonlinear', 25, 60, time, noise=0.5)
 # initial state
 ekf.x = np.array([30, 0., 0.])
 xs, track = [], []
+pos_uncertainty, vel_uncertainty, acc_uncertainty = [], [], []
 for i, row in df.iterrows():
     z = np.array([row['medium'], row['long']])
     track.append(z)
@@ -37,20 +35,24 @@ for i, row in df.iterrows():
     ekf.update(z, HJacobian=h_jacob, Hx=h)
     ekf.predict()
     xs.append(ekf.x.copy())
+    pos_uncertainty.append(ekf.P[0, 0])
+    vel_uncertainty.append(ekf.P[1, 1])
+    acc_uncertainty.append(ekf.P[2, 2])
 
 xs = np.asarray(xs)
 track = np.asarray(track)
 long_dist = long_f_inv(track[:, 1])
 medium_dist = medium_f_inv(track[:, 0])
 
-print(ekf.P)
-
 plt.plot(time, medium_dist, alpha=.5, label='Simulated Medium')
 plt.plot(time, long_dist, alpha=0.5, label='Simulated Long')
 plt.plot(time, x_true, alpha=0.5, label='True Simulation x')
 plt.plot(time, xs, label=['Filter x', 'Filter x\'', 'Filter x\'\''])
-# plt.plot(time, long_f_inv(df['long']), label='Measured Long')
-# plt.plot(time, medium_f_inv(df['medium']), label='Measured Medium')
+plt.plot(time, long_f_inv(df['long']), label='Measured Long')
+plt.plot(time, medium_f_inv(df['medium']), label='Measured Medium')
+# plt.plot(time, pos_uncertainty, label='Position Uncertainty')
+# plt.plot(time, vel_uncertainty, label='Velocity Uncertainty')
+# plt.plot(time, acc_uncertainty, label='Acceleration Uncertainty')
 plt.grid()
 plt.legend()
 plt.xlabel('Time (s)')
