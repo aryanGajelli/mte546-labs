@@ -113,10 +113,11 @@ def medium_f_inv(v):
 
 
 def h(x_k):
+    x, x_dot, x_ddot = x_k
     return np.array([
-        [28.1695/x_k - 7.8077/x_k**2 + 0.0177],  # medium
-        [110.1430/x_k - 962.0809/x_k**2 - 0.6234]  # long
-    ])
+        [28.1695/x - 7.8077/x**2 + 0.0177],  # medium
+        [110.1430/x - 962.0809/x**2 - 0.6234]  # long
+    ]).squeeze()
 
 
 def h_jacob(x_k):
@@ -124,7 +125,7 @@ def h_jacob(x_k):
     return np.array([
         [-28.1695/x**2 - 15.6154/x**3, 0, 0],
         [-110.1430/x**2 - 1924.162/x**3, 0, 0]
-    ])
+    ]).squeeze()
 
 def get_variances(dist_id: Literal['short', 'medium', 'long']):
     variances = []
