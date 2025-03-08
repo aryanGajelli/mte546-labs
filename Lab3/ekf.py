@@ -23,10 +23,10 @@ ekf.Q = Q_discrete_white_noise(dim=3, dt=dt, var=1)
 ekf.R = np.diag([medium_range_var, long_range_var])*150
 
 
-df_exp = load_data_two_data_rows('Lab3_data/smooth25_60.mat')
-time = np.arange(0, len(df_exp)*dt, dt)
+# df_exp = load_data_two_data_rows('Lab3_data/smooth25_60.mat')
+time = np.arange(0, 5, dt)
 
-x_true, df = simulate('linear', ekf.x[0], 60, time, noise=0.5027153965680103)
+x_true, df = simulate('nonlinear', 25, 60, time, noise=0.5)
 
 xs, track = [], []
 for i, row in df.iterrows():
@@ -54,5 +54,5 @@ plt.grid()
 plt.legend()
 plt.xlabel('Time (s)')
 plt.ylabel('Distance (cm)')
-plt.title('Smooth 25cm to 60cm Distance Tracking')
+plt.title('Nonlinear 25cm to 60cm Distance Tracking')
 plt.show()

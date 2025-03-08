@@ -11,7 +11,7 @@ def simulate(sim_type: SIM_TYPE, x0, xf, t: np.ndarray, noise: float = 0.1):
     """
     # tune these
     # nonlinear
-    A = 0.1 # (0, xf-x0)
+    A = 20 # (0, xf-x0)
     f = 1.1 # (1, 10]
     # random
     N = 3 # number of random motions?
