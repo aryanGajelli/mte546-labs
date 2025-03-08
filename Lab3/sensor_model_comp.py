@@ -29,7 +29,7 @@ def load_data(file_path: Path):
     raw = loadmat(file_path)
     data = np.squeeze(raw['data'].T)
     time = np.arange(0, len(data)/1000, 0.001)  # data was sample at 1kHz
-    df = pd.DataFrame(data, index=time)
+    df = pd.DataFrame(data, index=time, columns=['data'])
     df.dropna(inplace=True)
     return df
 
@@ -133,7 +133,7 @@ def get_variances(dist_id: Literal['short', 'medium', 'long']):
         for dist, df in get_iterable_dist_v_voltage('med_long', filter=False):
             variances.append([dist, df['long'].var()])
         for dist, df in get_iterable_dist_v_voltage('long', filter=False):
-            variances.append([dist, df['long'].var()])
+            variances.append([dist, df['data'].var()])
     elif dist_id == 'medium':
         for dist, df in get_iterable_dist_v_voltage('med_long', filter=False):
             variances.append([dist, df['medium'].var()])
