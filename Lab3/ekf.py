@@ -18,7 +18,7 @@ ekf.F = np.array([[1, dt, 0.5*dt*dt],
                   [0, 1, dt],
                   [0, 0, 1]])
 
-ekf.Q = Q_discrete_white_noise(dim=3, dt=dt, var=1)
+ekf.Q = Q_discrete_white_noise(dim=3, dt=dt, var=3)
 ekf.R = np.diag([medium_range_var, long_range_var])*150
 
 
@@ -27,7 +27,7 @@ time = np.arange(0, 10, dt)
 
 x_true, df = simulate('random', 25, 60, time, noise=0.5)
 # initial state
-ekf.x = np.array([x_true[0], 0., 0.])
+ekf.x = np.array([30, 0., 0.])
 xs, track = [], []
 for i, row in df.iterrows():
     z = np.array([row['medium'], row['long']])
@@ -42,14 +42,14 @@ track = np.asarray(track)
 long_dist = long_f_inv(track[:, 1])
 medium_dist = medium_f_inv(track[:, 0])
 
+print(ekf.P)
 
-
-plt.plot(time, medium_dist, alpha=.5, label='Simulated Medium')
-plt.plot(time, long_dist, alpha=0.5, label='Simulated Long')
-plt.plot(time, x_true, alpha=0.5, label='True Simulation x')
+# plt.plot(time, medium_dist, alpha=.5, label='Simulated Medium')
+# plt.plot(time, long_dist, alpha=0.5, label='Simulated Long')
+# plt.plot(time, x_true, alpha=0.5, label='True Simulation x')
 plt.plot(time, xs, label=['Filter x', 'Filter x\'', 'Filter x\'\''])
-# plt.plot(time, long_f_inv(df_exp['long']), label='Measured Long')
-# plt.plot(time, medium_f_inv(df_exp['medium']), label='Measured Medium')
+plt.plot(time, long_f_inv(df['long']), label='Measured Long')
+plt.plot(time, medium_f_inv(df['medium']), label='Measured Medium')
 plt.grid()
 plt.legend()
 plt.xlabel('Time (s)')
