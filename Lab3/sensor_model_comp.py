@@ -20,7 +20,7 @@ def load_data_two_data_rows(file_path: Path):
     raw = loadmat(file_path)
     data = np.squeeze(raw['data'])
     time = np.arange(0, len(data)/1000, 0.001)  # data was sample at 1kHz
-    df = pd.DataFrame(data, index=time, columns=['medium', 'long'])
+    df = pd.DataFrame(data, index=time, columns=['medium', 'long']).rolling(60).median()
     df.dropna(inplace=True)
     return df
 
